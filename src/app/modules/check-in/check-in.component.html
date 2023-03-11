@@ -1,0 +1,92 @@
+<form [formGroup]="formGroup">
+  <p-card>
+    <ng-template pTemplate="header">
+      <p class="p-card-title contrast-color">Novo check in</p>
+    </ng-template>
+    <div class="p-fluid grid formgrid">
+      <div class="field col-6">
+        <label>Entrada</label>
+        <p-calendar
+          formControlName="dataEntrada"
+          [showTime]="true"
+          [showIcon]="true"
+        >
+        </p-calendar>
+
+        <ng-container id="msgErro" *ngIf="invalid('dataEntrada')" style="color: red">
+          Data de Entrada deve ser anterior a Data de Saída
+        </ng-container>
+      </div>
+      <div class="field col-6">
+        <label>Saida</label>
+        <p-calendar
+          formControlName="dataSaida"
+          icon="pi pi-calendar"
+          [showTime]="true"
+          [showIcon]="true"
+        >
+        </p-calendar>
+      </div>
+      <div class="field col-6">
+        <label>Hospede</label>
+        <p-dropdown formControlName="hospede"></p-dropdown>
+      </div>
+      <div class="field col-6">
+        <br/>
+        <br/>
+        <p-checkbox
+          formControlName="possuiVeiculo"
+          label="Possui veículo?"
+          [binary]="true"
+        ></p-checkbox>
+      </div>
+    </div>
+    <p-button>Salvar</p-button>
+  </p-card>
+  <p-card>
+    <ng-template pTemplate="header">
+      <p class="p-card-title contrast-color">Consultas</p>
+    </ng-template>
+    <div id="filtros">
+      <p>Filtrar por:</p>
+      <p-radioButton
+        name="filtro"
+        value="T"
+        label="Todos"
+        formControlName="filtro"
+      ></p-radioButton>
+      <p-radioButton
+        name="filtro"
+        value="P"
+        label="Pessoas ainda presentes"
+        formControlName="filtro"
+      ></p-radioButton>
+      <p-radioButton
+        name="filtro"
+        value="A"
+        label="Pessoas que não estão mais no hotel"
+        formControlName="filtro"
+      ></p-radioButton>
+    </div>
+    <div id="tabela_hospedes">
+      <p-table [value]="hospedes" [paginator]="true" [rows]="3">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 25%">Nome</th>
+            <th style="width: 25%">Documento</th>
+            <th style="width: 25%">Valor Total Gasto (R$)</th>
+            <th style="width: 25%">Valor Gasto Última Hospedagem (R$)</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-hospede>
+          <tr>
+            <td style="width: 25%">{{ hospede.nome }}</td>
+            <td style="width: 25%">{{ hospede.documento }}</td>
+            <td style="width: 25%">{{ hospede.valorTotal }}</td>
+            <td style="width: 25%">{{ hospede.valorUltima }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </p-card>
+</form>
