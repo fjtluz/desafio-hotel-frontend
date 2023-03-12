@@ -1,32 +1,26 @@
 import { Injectable } from '@angular/core';
 import {CheckInModel} from "./check-in.model";
+import {HttpClient} from "@angular/common/http";
+import {Observable} from "rxjs";
+import {Retorno} from "../../models/retorno";
 
 @Injectable({
   providedIn: 'root'
 })
 export class CheckInService {
 
+  private baseURL = 'http://localhost:8080/check-in';
+
   private todosCheckIns: Array<CheckInModel> = []
 
-  constructor() { }
+  constructor(private http: HttpClient) { }
 
-  adicionaCheckIn(checkIn: CheckInModel): string {
-    const validacao = this.checkInInvalido(checkIn);
-
-    if (validacao !== 'OK') {
-      return validacao;
-    }
-    this.todosCheckIns.push(checkIn);
-    console.log(this.todosCheckIns)
-    return 'OK';
+  adicionaCheckIn(checkIn: CheckInModel): Observable<Retorno<CheckInModel>> {
+    return this.http.post<Retorno<CheckInModel>>(this.baseURL, checkIn);
   }
 
   checkInPorDocumento(documento: string): Array<CheckInModel> {
     return this.todosCheckIns.filter((checkIn) => checkIn.hospede.documento === documento);
-  }
-
-  checkInsHoje(): Array<CheckInModel> {
-    return this.todosCheckIns.filter((ci) => ci.dataEntrada <= new Date() && ci.dataSaida >= new Date());
   }
 
   deletaCheckInPorDocumento(documento: string): void {

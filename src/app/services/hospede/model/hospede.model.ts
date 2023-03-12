@@ -3,14 +3,14 @@ export class HospedeModel {
   nome: string;
   telefone: string;
   valorTotal: number;
-  valorUltima: number
+  valorUltimaHospedagem: number
 
   constructor(documento: string, nome: string, telefone: string) {
     this.documento = documento;
     this.nome = nome;
     this.telefone = telefone;
     this.valorTotal = 0;
-    this.valorUltima = 0;
+    this.valorUltimaHospedagem = 0;
   }
 
   static todos(): Array<HospedeModel> {

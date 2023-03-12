@@ -35,8 +35,7 @@ export class CheckInComponent {
     private confirmationService: ConfirmationService
   ) {
     this.formGroup = this.montaFormGroup()
-    this.buscaPessoas();
-    this.buscaCheckInHoje();
+    this.filtroPessoas('T');
 
     this.formGroup.get('consultas')?.get('filtro')?.valueChanges.subscribe(this.filtroPessoas.bind(this));
   }
@@ -104,11 +103,6 @@ export class CheckInComponent {
     this.displayModalPessoas = false;
   }
 
-  buscaPessoas(): void {
-    this.todosHospedes = this.hospedeService.buscaTodosHospede();
-    this.hospedes = this.todosHospedes;
-  }
-
   salvaNovaPessoa(): void {
     const novaPessoaFG = this.formGroup.get('novaPessoa') as FormGroup;
 
@@ -132,39 +126,44 @@ export class CheckInComponent {
     const nome = novaPessoaFG.get('nome')?.value;
     const telefone = novaPessoaFG.get('telefone')?.value;
 
-    this.hospedeService.adicionaNovoHospede(new HospedeModel(documento, nome, telefone));
-    this.displayModalPessoas = false;
-    this.buscaPessoas();
+    const inserir = this.hospedeService.adicionaNovoHospede(new HospedeModel(documento, nome, telefone));
+    inserir.subscribe(() => {
+      this.displayModalPessoas = false;
+      this.filtroPessoas(this.formGroup.get('consultas')?.get('filtro')?.value)
 
-    novaPessoaFG.get('documento')?.reset();
-    novaPessoaFG.get('nome')?.reset();
-    novaPessoaFG.get('telefone')?.reset();
+      novaPessoaFG.get('documento')?.reset();
+      novaPessoaFG.get('nome')?.reset();
+      novaPessoaFG.get('telefone')?.reset();
+    });
   }
 
   deletaPessoa(documento: string): void {
-    this.hospedeService.deletaHospede(documento);
-    this.buscaPessoas();
-    this.buscaCheckInHoje();
+    this.hospedeService.deletaHospede(documento).subscribe(() => {
+      this.filtroPessoas(this.formGroup.get('consultas')?.get('filtro')?.value)
+    });
   }
 
   filtroPessoas(selecionado: string) {
-    this.buscaPessoas()
-    this.buscaCheckInHoje()
     switch (selecionado) {
       case 'P':
-        this.hospedes = this.hospedes.filter((h) =>
-          this.checkInsHoje.find((ci) => ci.hospede.documento === h.documento));
+        this.hospedeService.presentes().subscribe((ret) => {
+          this.hospedes = ret.retorno;
+        })
         break;
       case 'A':
-        this.hospedes = this.hospedes.filter((h) =>
-          !this.checkInsHoje.find((ci) => ci.hospede.documento === h.documento));
+        this.hospedeService.ausentes().subscribe((ret) => {
+          this.hospedes = ret.retorno;
+        })
+        break;
+      case 'T':
+        this.hospedeService.buscaTodosHospede().subscribe((r) => {
+          this.todosHospedes = r.retorno;
+          this.hospedes = r.retorno;
+        })
         break;
     }
   }
 
-  buscaCheckInHoje(): void {
-    this.checkInsHoje = this.checkInService.checkInsHoje();
-  }
 
   salvaCheckIn(): void {
     const checkIn = this.formGroup.get('checkIn') as FormGroup;
@@ -194,15 +193,21 @@ export class CheckInComponent {
     const dataSaida = checkIn?.get('dataSaida')?.value as Date;
     const possuiVeiculo = checkIn?.get('possuiVeiculo')?.value as boolean;
 
-    const retorno = this.checkInService.adicionaCheckIn(new CheckInModel(hospede, dataEntrada, dataSaida, possuiVeiculo));
+    this.checkInService
+      .adicionaCheckIn(new CheckInModel(hospede, dataEntrada, dataSaida, possuiVeiculo))
+      .subscribe((ret) => {
+        if (ret.mensagem !== 'OK') {
+          this.messageErrorDialog = ret.mensagem;
+          this.displayErrorDialog = true;
+        } else {
+          this.filtroPessoas(this.formGroup.get('consultas')?.get('filtro')?.value)
 
-    if (retorno !== 'OK') {
-      this.messageErrorDialog = retorno;
-      this.displayErrorDialog = true;
-    } else {
-      this.hospedes = this.hospedeService.buscaTodosHospede();
-      this.buscaCheckInHoje();
-    }
+          for (const i of Object.keys(checkIn.controls)) {
+            checkIn.controls[i].reset();
+            checkIn.controls[i].clearValidators();
+          }
+        }
+      });
   }
 
   // Validadores customizados
