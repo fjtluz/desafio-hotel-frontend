@@ -1,11 +1,47 @@
 <form [formGroup]="formGroup">
-  <p-card>
+  <div id="inclui-pessoa">
+    <p-button (click)="mostrarModalPessoa()">Incluir/Alterar Pessoa</p-button>
+    <p-dialog
+      header="Incluir/Alterar pessoa"
+      formGroupName="novaPessoa"
+      [modal]="true"
+      [draggable]="false"
+      [resizable]="false"
+      [style]="{ width: '50vw' }"
+      (onHide)="fecharModalPessoa()"
+      [(visible)]="displayModalPessoas"
+    >
+      <div class="p-fluid grid formgrid">
+        <div class="field col-12">
+          <label>Documento</label>
+          <input pInputText formControlName="documento"/>
+          <ng-container class="msgErro" *ngIf="invalid('novaPessoa', 'documento')">
+            <span class="msgErro">Campo documento é obrigatório</span>
+          </ng-container>
+        </div>
+        <div class="field col-12">
+          <label>Nome</label>
+          <input pInputText formControlName="nome"/>
+          <ng-container class="msgErro" *ngIf="invalid('novaPessoa', 'nome')">
+            <span class="msgErro">Campo nome é obrigatório</span>
+          </ng-container>
+        </div>
+        <div class="field col-12">
+          <label>Telefone</label>
+          <input pInputText formControlName="telefone"/>
+        </div>
+        <p-button (click)="salvaNovaPessoa()">Salvar</p-button>
+      </div>
+    </p-dialog>
+    <p-confirmDialog header="Há informações preenchida, deseja salvar?"></p-confirmDialog>
+  </div>
+  <p-card formGroupName="checkIn">
     <ng-template pTemplate="header">
       <p class="p-card-title contrast-color">Novo check in</p>
     </ng-template>
     <div class="p-fluid grid formgrid">
       <div class="field col-6">
-        <label>Entrada</label>
+        <label>Data/hora de Entrada</label>
         <p-calendar
           formControlName="dataEntrada"
           [showTime]="true"
@@ -13,12 +49,12 @@
         >
         </p-calendar>
 
-        <ng-container id="msgErro" *ngIf="invalid('dataEntrada')" style="color: red">
-          Data de Entrada deve ser anterior a Data de Saída
+        <ng-container *ngIf="invalid('checkIn', 'dataEntrada')">
+          <span class="msgErro">Data de Entrada deve ser anterior a Data de Saída</span>
         </ng-container>
       </div>
       <div class="field col-6">
-        <label>Saida</label>
+        <label>Data/hora de Saída</label>
         <p-calendar
           formControlName="dataSaida"
           icon="pi pi-calendar"
@@ -26,10 +62,23 @@
           [showIcon]="true"
         >
         </p-calendar>
+        <ng-container *ngIf="invalid('checkIn', 'dataSaida')">
+          <span class="msgErro">Data de Entrada deve ser anterior a Data de Saída</span>
+        </ng-container>
       </div>
       <div class="field col-6">
         <label>Hospede</label>
-        <p-dropdown formControlName="hospede"></p-dropdown>
+        <p-dropdown
+          formControlName="hospede"
+          placeholder="Selecione um hospede"
+          filterBy="nome,documento,telefone"
+          [filter]="true"
+          optionLabel="nome"
+          [options]="todosHospedes"
+        ></p-dropdown>
+        <ng-container class="msgErro" *ngIf="invalid('checkIn', 'hospede')">
+          <span class="msgErro">Campo hospede é obrigatório</span>
+        </ng-container>
       </div>
       <div class="field col-6">
         <br/>
@@ -40,10 +89,10 @@
           [binary]="true"
         ></p-checkbox>
       </div>
+      <p-button (click)="salvaCheckIn()">Salvar</p-button>
     </div>
-    <p-button>Salvar</p-button>
   </p-card>
-  <p-card>
+  <p-card formGroupName="consultas">
     <ng-template pTemplate="header">
       <p class="p-card-title contrast-color">Consultas</p>
     </ng-template>
@@ -69,13 +118,14 @@
       ></p-radioButton>
     </div>
     <div id="tabela_hospedes">
-      <p-table [value]="hospedes" [paginator]="true" [rows]="3">
+      <p-table [value]="hospedes" [paginator]="true" [rows]="10">
         <ng-template pTemplate="header">
           <tr>
             <th style="width: 25%">Nome</th>
             <th style="width: 25%">Documento</th>
             <th style="width: 25%">Valor Total Gasto (R$)</th>
             <th style="width: 25%">Valor Gasto Última Hospedagem (R$)</th>
+            <th></th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-hospede>
@@ -84,9 +134,22 @@
             <td style="width: 25%">{{ hospede.documento }}</td>
             <td style="width: 25%">{{ hospede.valorTotal }}</td>
             <td style="width: 25%">{{ hospede.valorUltima }}</td>
+            <td>
+              <button pButton icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deletaPessoa(hospede.documento)"></button>
+            </td>
           </tr>
         </ng-template>
       </p-table>
     </div>
   </p-card>
+  <p-dialog
+    header="Informações inválidas"
+    position="top-right"
+    [style]="{width: '50vw'}"
+    [draggable]="false"
+    [resizable]="false"
+    [(visible)]="displayErrorDialog"
+    >
+    <p>{{ messageErrorDialog }}</p>
+  </p-dialog>
 </form>

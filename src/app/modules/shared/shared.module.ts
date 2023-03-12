@@ -8,6 +8,8 @@ import {DropdownModule} from 'primeng/dropdown';
 import {CheckboxModule} from 'primeng/checkbox';
 import {RadioButtonModule} from 'primeng/radiobutton';
 import {TableModule} from "primeng/table";
+import {DialogModule} from 'primeng/dialog';
+import {ConfirmDialogModule} from 'primeng/confirmdialog';
 
 const PRIME_NG_MODULES = [
   CardModule,
@@ -17,7 +19,9 @@ const PRIME_NG_MODULES = [
   DropdownModule,
   CheckboxModule,
   RadioButtonModule,
-  TableModule
+  TableModule,
+  DialogModule,
+  ConfirmDialogModule
 ];
 
 @NgModule({
