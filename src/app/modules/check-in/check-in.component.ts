@@ -5,6 +5,8 @@ import {HospedeService} from "../../services/hospede/hospede.service";
 import {CheckInService} from "../../services/check-in/check-in.service";
 import {CheckInModel} from "../../services/check-in/check-in.model";
 import {ConfirmationService} from "primeng/api";
+import {Observable} from "rxjs";
+import {Retorno} from "../../models/retorno";
 
 @Component({
   selector: 'app-check-in',
@@ -20,7 +22,11 @@ export class CheckInComponent {
   formGroup: FormGroup;
 
   hospedes: Array<HospedeModel> = [];
-  todosHospedes: Array<HospedeModel> = [];
+  get todosHospedes(): Array<HospedeModel> {
+    const fromStorage = sessionStorage.getItem('hospedes');
+
+    return fromStorage ? JSON.parse(fromStorage) : [];
+  }
   checkInsHoje: Array<CheckInModel> = [];
 
   displayErrorDialog = false;
@@ -126,8 +132,15 @@ export class CheckInComponent {
     const nome = novaPessoaFG.get('nome')?.value;
     const telefone = novaPessoaFG.get('telefone')?.value;
 
-    const inserir = this.hospedeService.adicionaNovoHospede(new HospedeModel(documento, nome, telefone));
-    inserir.subscribe(() => {
+    let inscricao: Observable<Retorno<HospedeModel>>;
+
+    if (this.todosHospedes.some((h) => h.documento === documento)) {
+      inscricao = this.hospedeService.alterarHospede(new HospedeModel(documento, nome, telefone));
+    } else {
+      inscricao = this.hospedeService.adicionaNovoHospede(new HospedeModel(documento, nome, telefone));
+    }
+
+    inscricao.subscribe(() => {
       this.displayModalPessoas = false;
       this.filtroPessoas(this.formGroup.get('consultas')?.get('filtro')?.value)
 
@@ -157,13 +170,12 @@ export class CheckInComponent {
         break;
       case 'T':
         this.hospedeService.buscaTodosHospede().subscribe((r) => {
-          this.todosHospedes = r.retorno;
+          sessionStorage.setItem('hospedes', JSON.stringify(r.retorno));
           this.hospedes = r.retorno;
         })
         break;
     }
   }
-
 
   salvaCheckIn(): void {
     const checkIn = this.formGroup.get('checkIn') as FormGroup;

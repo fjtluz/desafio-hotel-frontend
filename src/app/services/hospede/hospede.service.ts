@@ -32,6 +32,10 @@ export class HospedeService {
     return this.http.get<Retorno<Array<HospedeModel>>>(`${this.baseURL}/ausentes`, { headers: this.headers });
   }
 
+  alterarHospede(hospede: HospedeModel): Observable<Retorno<HospedeModel>> {
+    return this.http.put<Retorno<HospedeModel>>(this.baseURL, hospede);
+  }
+
   adicionaNovoHospede(hospede: HospedeModel): Observable<Retorno<HospedeModel>> {
     return this.http.post<Retorno<HospedeModel>>(this.baseURL, hospede, { headers: this.headers });
   }
